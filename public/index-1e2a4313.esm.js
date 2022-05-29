@@ -6,6 +6,8 @@ import Reconciler from 'react-reconciler';
 import { unstable_scheduleCallback, unstable_IdlePriority } from 'scheduler';
 import { suspend, preload, clear } from 'suspend-react';
 
+var window = self || window
+
 var threeTypes = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
@@ -1376,7 +1378,7 @@ const createStore = (invalidate, advance) => {
       updateCamera(camera, size); // Update renderer
 
       gl.setPixelRatio(viewport.dpr);
-      gl.setSize(size.width, size.height);
+      gl.setSize(size.width, size.height, false);
       oldSize = size;
       oldDpr = viewport.dpr;
     }
