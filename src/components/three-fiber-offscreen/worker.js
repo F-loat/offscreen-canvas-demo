@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react'
 import * as THREE from 'three'
-import { extend, useFrame, createRoot, events } from '@react-three/fiber'
+import { extend, useFrame, createRoot } from '@react-three/fiber'
+import { createPointerEvents } from './events'
 
 extend(THREE)
 
@@ -46,10 +47,11 @@ self.onmessage = (event) => {
   const root = createRoot(canvas)
 
   root.configure({
-    events,
+    events: createPointerEvents,
     size: {
       width,
       height,
+      updateStyle: false
     },
     dpr: pixelRatio,
   })

@@ -9,8 +9,34 @@ html, body {
   overflow: hidden;
 }
 
+a {
+  color: #333;
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
 .counter {
   position: fixed;
   right: 20px;
   top: 20px;
+  text-align: right;
+}
+
+.counter button {
+  border: none;
+  padding: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.nav {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+.highlight {
+  color: red;
 }

@@ -1,0 +1,332 @@
+diff --git a/node_modules/@react-three/fiber/dist/declarations/src/core/store.d.ts b/node_modules/@react-three/fiber/dist/declarations/src/core/store.d.ts
+index 603105c..bb6d394 100644
+--- a/node_modules/@react-three/fiber/dist/declarations/src/core/store.d.ts
++++ b/node_modules/@react-three/fiber/dist/declarations/src/core/store.d.ts
+@@ -17,6 +17,7 @@ export declare type Dpr = number | [min: number, max: number];
+ export declare type Size = {
+     width: number;
+     height: number;
++    updateStyle?: boolean;
+ };
+ export declare type Viewport = Size & {
+     initialDpr: number;
+@@ -80,7 +81,7 @@ export declare type RootState = {
+     invalidate: (frames?: number) => void;
+     advance: (timestamp: number, runGlobalEffects?: boolean) => void;
+     setEvents: (events: Partial<EventManager<any>>) => void;
+-    setSize: (width: number, height: number) => void;
++    setSize: (width: number, height: number, updateStyle?: boolean) => void;
+     setDpr: (dpr: Dpr) => void;
+     setFrameloop: (frameloop?: 'always' | 'demand' | 'never') => void;
+     onPointerMissed?: (event: MouseEvent) => void;
+diff --git a/node_modules/@react-three/fiber/dist/declarations/src/index.d.ts b/node_modules/@react-three/fiber/dist/declarations/src/index.d.ts
+index 48bea2b..2a85d96 100644
+--- a/node_modules/@react-three/fiber/dist/declarations/src/index.d.ts
++++ b/node_modules/@react-three/fiber/dist/declarations/src/index.d.ts
+@@ -6,5 +6,6 @@ export type { Intersection, Subscription, Dpr, Size, Viewport, RenderCallback, P
+ export type { ThreeEvent, Events, EventManager, ComputeFunction } from './core/events';
+ export type { ObjectMap, Camera } from './core/utils';
+ export * from './web/Canvas';
++export { createEvents } from './core/events';
+ export { createPointerEvents as events } from './web/events';
+ export * from './core';
+diff --git a/node_modules/@react-three/fiber/dist/index-dcd9befe.cjs.prod.js b/node_modules/@react-three/fiber/dist/index-05a4c26c.cjs.prod.js
+similarity index 99%
+rename from node_modules/@react-three/fiber/dist/index-dcd9befe.cjs.prod.js
+rename to node_modules/@react-three/fiber/dist/index-05a4c26c.cjs.prod.js
+index 103ac81..4dc54b6 100644
+--- a/node_modules/@react-three/fiber/dist/index-dcd9befe.cjs.prod.js
++++ b/node_modules/@react-three/fiber/dist/index-05a4c26c.cjs.prod.js
+@@ -41,7 +41,7 @@ const isOrthographicCamera = def => def && def.isOrthographicCamera; // React cu
+ // To get around it, we can conditionally useEffect on the server (no-op) and
+ // useLayoutEffect on the client.
+ 
+-const isSSR = typeof window === 'undefined' || !window.navigator || /ServerSideRendering|^Deno\//.test(window.navigator.userAgent);
++const isSSR = typeof window === 'undefined' || !globalThis.navigator || /ServerSideRendering|^Deno\//.test(globalThis.navigator.userAgent);
+ const useIsomorphicLayoutEffect = isSSR ? React__namespace.useEffect : React__namespace.useLayoutEffect;
+ function useMutableCallback(fn) {
+   const ref = React__namespace.useRef(fn);
+@@ -82,7 +82,9 @@ ErrorBoundary.getDerivedStateFromError = () => ({
+ const DEFAULT = '__default';
+ const isDiffSet = def => def && !!def.memoized && !!def.changes;
+ function calculateDpr(dpr) {
+-  return Array.isArray(dpr) ? Math.min(Math.max(dpr[0], window.devicePixelRatio), dpr[1]) : dpr;
++  if (!Array.isArray(dpr)) return dpr;
++  if (!globalThis.devicePixelRatio) return Math.min(dpr[0], dpr[1]);
++  return Math.min(Math.max(dpr[0], globalThis.devicePixelRatio), dpr[1]);
+ }
+ /**
+  * Returns instance root state
+@@ -435,9 +437,9 @@ function makeId(event) {
+ 
+ 
+ function getEventPriority() {
+-  var _window, _window$event;
++  var _globalThis$event;
+ 
+-  let name = (_window = window) == null ? void 0 : (_window$event = _window.event) == null ? void 0 : _window$event.type;
++  let name = globalThis == null ? void 0 : (_globalThis$event = globalThis.event) == null ? void 0 : _globalThis$event.type;
+ 
+   switch (name) {
+     case 'click':
+@@ -1286,7 +1288,8 @@ const createStore = (invalidate, advance) => {
+       },
+       size: {
+         width: 0,
+-        height: 0
++        height: 0,
++        updateStyle: false
+       },
+       viewport: {
+         initialDpr: 0,
+@@ -1303,11 +1306,12 @@ const createStore = (invalidate, advance) => {
+           ...events
+         }
+       })),
+-      setSize: (width, height) => {
++      setSize: (width, height, updateStyle) => {
+         const camera = get().camera;
+         const size = {
+           width,
+-          height
++          height,
++          updateStyle
+         };
+         set(state => ({
+           size,
+@@ -1403,7 +1407,7 @@ const createStore = (invalidate, advance) => {
+       updateCamera(camera, size); // Update renderer
+ 
+       gl.setPixelRatio(viewport.dpr);
+-      gl.setSize(size.width, size.height);
++      gl.setSize(size.width, size.height, size.updateStyle);
+       oldSize = size;
+       oldDpr = viewport.dpr;
+     }
+@@ -1825,7 +1829,7 @@ function createRoot(canvas) {
+         width: (_canvas$parentElement = (_canvas$parentElement2 = canvas.parentElement) == null ? void 0 : _canvas$parentElement2.clientWidth) != null ? _canvas$parentElement : 0,
+         height: (_canvas$parentElement3 = (_canvas$parentElement4 = canvas.parentElement) == null ? void 0 : _canvas$parentElement4.clientHeight) != null ? _canvas$parentElement3 : 0
+       };
+-      if (!is.equ(size, state.size, shallowLoose)) state.setSize(size.width, size.height); // Check frameloop
++      if (!is.equ(size, state.size, shallowLoose)) state.setSize(size.width, size.height, size.updateStyle); // Check frameloop
+ 
+       if (state.frameloop !== frameloop) state.setFrameloop(frameloop); // Check pointer missed
+ 
+diff --git a/node_modules/@react-three/fiber/dist/index-88f08658.cjs.dev.js b/node_modules/@react-three/fiber/dist/index-16a4084b.cjs.dev.js
+similarity index 99%
+rename from node_modules/@react-three/fiber/dist/index-88f08658.cjs.dev.js
+rename to node_modules/@react-three/fiber/dist/index-16a4084b.cjs.dev.js
+index 1c2ca0b..058112c 100644
+--- a/node_modules/@react-three/fiber/dist/index-88f08658.cjs.dev.js
++++ b/node_modules/@react-three/fiber/dist/index-16a4084b.cjs.dev.js
+@@ -41,7 +41,7 @@ const isOrthographicCamera = def => def && def.isOrthographicCamera; // React cu
+ // To get around it, we can conditionally useEffect on the server (no-op) and
+ // useLayoutEffect on the client.
+ 
+-const isSSR = typeof window === 'undefined' || !window.navigator || /ServerSideRendering|^Deno\//.test(window.navigator.userAgent);
++const isSSR = typeof window === 'undefined' || !globalThis.navigator || /ServerSideRendering|^Deno\//.test(globalThis.navigator.userAgent);
+ const useIsomorphicLayoutEffect = isSSR ? React__namespace.useEffect : React__namespace.useLayoutEffect;
+ function useMutableCallback(fn) {
+   const ref = React__namespace.useRef(fn);
+@@ -82,7 +82,9 @@ ErrorBoundary.getDerivedStateFromError = () => ({
+ const DEFAULT = '__default';
+ const isDiffSet = def => def && !!def.memoized && !!def.changes;
+ function calculateDpr(dpr) {
+-  return Array.isArray(dpr) ? Math.min(Math.max(dpr[0], window.devicePixelRatio), dpr[1]) : dpr;
++  if (!Array.isArray(dpr)) return dpr;
++  if (!globalThis.devicePixelRatio) return Math.min(dpr[0], dpr[1]);
++  return Math.min(Math.max(dpr[0], globalThis.devicePixelRatio), dpr[1]);
+ }
+ /**
+  * Returns instance root state
+@@ -435,9 +437,9 @@ function makeId(event) {
+ 
+ 
+ function getEventPriority() {
+-  var _window, _window$event;
++  var _globalThis$event;
+ 
+-  let name = (_window = window) == null ? void 0 : (_window$event = _window.event) == null ? void 0 : _window$event.type;
++  let name = globalThis == null ? void 0 : (_globalThis$event = globalThis.event) == null ? void 0 : _globalThis$event.type;
+ 
+   switch (name) {
+     case 'click':
+@@ -1286,7 +1288,8 @@ const createStore = (invalidate, advance) => {
+       },
+       size: {
+         width: 0,
+-        height: 0
++        height: 0,
++        updateStyle: false
+       },
+       viewport: {
+         initialDpr: 0,
+@@ -1303,11 +1306,12 @@ const createStore = (invalidate, advance) => {
+           ...events
+         }
+       })),
+-      setSize: (width, height) => {
++      setSize: (width, height, updateStyle) => {
+         const camera = get().camera;
+         const size = {
+           width,
+-          height
++          height,
++          updateStyle
+         };
+         set(state => ({
+           size,
+@@ -1403,7 +1407,7 @@ const createStore = (invalidate, advance) => {
+       updateCamera(camera, size); // Update renderer
+ 
+       gl.setPixelRatio(viewport.dpr);
+-      gl.setSize(size.width, size.height);
++      gl.setSize(size.width, size.height, size.updateStyle);
+       oldSize = size;
+       oldDpr = viewport.dpr;
+     }
+@@ -1825,7 +1829,7 @@ function createRoot(canvas) {
+         width: (_canvas$parentElement = (_canvas$parentElement2 = canvas.parentElement) == null ? void 0 : _canvas$parentElement2.clientWidth) != null ? _canvas$parentElement : 0,
+         height: (_canvas$parentElement3 = (_canvas$parentElement4 = canvas.parentElement) == null ? void 0 : _canvas$parentElement4.clientHeight) != null ? _canvas$parentElement3 : 0
+       };
+-      if (!is.equ(size, state.size, shallowLoose)) state.setSize(size.width, size.height); // Check frameloop
++      if (!is.equ(size, state.size, shallowLoose)) state.setSize(size.width, size.height, size.updateStyle); // Check frameloop
+ 
+       if (state.frameloop !== frameloop) state.setFrameloop(frameloop); // Check pointer missed
+ 
+diff --git a/node_modules/@react-three/fiber/dist/index-1e2a4313.esm.js b/node_modules/@react-three/fiber/dist/index-22bed93d.esm.js
+similarity index 98%
+rename from node_modules/@react-three/fiber/dist/index-1e2a4313.esm.js
+rename to node_modules/@react-three/fiber/dist/index-22bed93d.esm.js
+index 43f08af..a60d50d 100644
+--- a/node_modules/@react-three/fiber/dist/index-1e2a4313.esm.js
++++ b/node_modules/@react-three/fiber/dist/index-22bed93d.esm.js
+@@ -14,7 +14,7 @@ const isOrthographicCamera = def => def && def.isOrthographicCamera; // React cu
+ // To get around it, we can conditionally useEffect on the server (no-op) and
+ // useLayoutEffect on the client.
+ 
+-const isSSR = typeof window === 'undefined' || !window.navigator || /ServerSideRendering|^Deno\//.test(window.navigator.userAgent);
++const isSSR = typeof window === 'undefined' || !globalThis.navigator || /ServerSideRendering|^Deno\//.test(globalThis.navigator.userAgent);
+ const useIsomorphicLayoutEffect = isSSR ? React.useEffect : React.useLayoutEffect;
+ function useMutableCallback(fn) {
+   const ref = React.useRef(fn);
+@@ -55,7 +55,9 @@ ErrorBoundary.getDerivedStateFromError = () => ({
+ const DEFAULT = '__default';
+ const isDiffSet = def => def && !!def.memoized && !!def.changes;
+ function calculateDpr(dpr) {
+-  return Array.isArray(dpr) ? Math.min(Math.max(dpr[0], window.devicePixelRatio), dpr[1]) : dpr;
++  if (!Array.isArray(dpr)) return dpr;
++  if (!globalThis.devicePixelRatio) return Math.min(dpr[0], dpr[1]);
++  return Math.min(Math.max(dpr[0], globalThis.devicePixelRatio), dpr[1]);
+ }
+ /**
+  * Returns instance root state
+@@ -408,9 +410,9 @@ function makeId(event) {
+ 
+ 
+ function getEventPriority() {
+-  var _window, _window$event;
++  var _globalThis$event;
+ 
+-  let name = (_window = window) == null ? void 0 : (_window$event = _window.event) == null ? void 0 : _window$event.type;
++  let name = globalThis == null ? void 0 : (_globalThis$event = globalThis.event) == null ? void 0 : _globalThis$event.type;
+ 
+   switch (name) {
+     case 'click':
+@@ -1259,7 +1261,8 @@ const createStore = (invalidate, advance) => {
+       },
+       size: {
+         width: 0,
+-        height: 0
++        height: 0,
++        updateStyle: false
+       },
+       viewport: {
+         initialDpr: 0,
+@@ -1276,11 +1279,12 @@ const createStore = (invalidate, advance) => {
+           ...events
+         }
+       })),
+-      setSize: (width, height) => {
++      setSize: (width, height, updateStyle) => {
+         const camera = get().camera;
+         const size = {
+           width,
+-          height
++          height,
++          updateStyle
+         };
+         set(state => ({
+           size,
+@@ -1376,7 +1380,7 @@ const createStore = (invalidate, advance) => {
+       updateCamera(camera, size); // Update renderer
+ 
+       gl.setPixelRatio(viewport.dpr);
+-      gl.setSize(size.width, size.height);
++      gl.setSize(size.width, size.height, size.updateStyle);
+       oldSize = size;
+       oldDpr = viewport.dpr;
+     }
+@@ -1798,7 +1802,7 @@ function createRoot(canvas) {
+         width: (_canvas$parentElement = (_canvas$parentElement2 = canvas.parentElement) == null ? void 0 : _canvas$parentElement2.clientWidth) != null ? _canvas$parentElement : 0,
+         height: (_canvas$parentElement3 = (_canvas$parentElement4 = canvas.parentElement) == null ? void 0 : _canvas$parentElement4.clientHeight) != null ? _canvas$parentElement3 : 0
+       };
+-      if (!is.equ(size, state.size, shallowLoose)) state.setSize(size.width, size.height); // Check frameloop
++      if (!is.equ(size, state.size, shallowLoose)) state.setSize(size.width, size.height, size.updateStyle); // Check frameloop
+ 
+       if (state.frameloop !== frameloop) state.setFrameloop(frameloop); // Check pointer missed
+ 
+diff --git a/node_modules/@react-three/fiber/dist/react-three-fiber.cjs.dev.js b/node_modules/@react-three/fiber/dist/react-three-fiber.cjs.dev.js
+index 603089a..c7954cd 100644
+--- a/node_modules/@react-three/fiber/dist/react-three-fiber.cjs.dev.js
++++ b/node_modules/@react-three/fiber/dist/react-three-fiber.cjs.dev.js
+@@ -2,7 +2,7 @@
+ 
+ Object.defineProperty(exports, '__esModule', { value: true });
+ 
+-var index = require('./index-88f08658.cjs.dev.js');
++var index = require('./index-16a4084b.cjs.dev.js');
+ var _extends = require('@babel/runtime/helpers/extends');
+ var React = require('react');
+ var THREE = require('three');
+@@ -241,6 +241,7 @@ exports.addTail = index.addTail;
+ exports.advance = index.advance;
+ exports.applyProps = index.applyProps;
+ exports.context = index.context;
++exports.createEvents = index.createEvents;
+ exports.createPortal = index.createPortal;
+ exports.createRoot = index.createRoot;
+ exports.dispose = index.dispose;
+diff --git a/node_modules/@react-three/fiber/dist/react-three-fiber.cjs.prod.js b/node_modules/@react-three/fiber/dist/react-three-fiber.cjs.prod.js
+index b7be377..1cb6e06 100644
+--- a/node_modules/@react-three/fiber/dist/react-three-fiber.cjs.prod.js
++++ b/node_modules/@react-three/fiber/dist/react-three-fiber.cjs.prod.js
+@@ -2,7 +2,7 @@
+ 
+ Object.defineProperty(exports, '__esModule', { value: true });
+ 
+-var index = require('./index-dcd9befe.cjs.prod.js');
++var index = require('./index-05a4c26c.cjs.prod.js');
+ var _extends = require('@babel/runtime/helpers/extends');
+ var React = require('react');
+ var THREE = require('three');
+@@ -241,6 +241,7 @@ exports.addTail = index.addTail;
+ exports.advance = index.advance;
+ exports.applyProps = index.applyProps;
+ exports.context = index.context;
++exports.createEvents = index.createEvents;
+ exports.createPortal = index.createPortal;
+ exports.createRoot = index.createRoot;
+ exports.dispose = index.dispose;
+diff --git a/node_modules/@react-three/fiber/dist/react-three-fiber.esm.js b/node_modules/@react-three/fiber/dist/react-three-fiber.esm.js
+index 9addf4b..f169dbe 100644
+--- a/node_modules/@react-three/fiber/dist/react-three-fiber.esm.js
++++ b/node_modules/@react-three/fiber/dist/react-three-fiber.esm.js
+@@ -1,5 +1,5 @@
+-import { c as createEvents, e as extend, u as useMutableCallback, a as createRoot, E as ErrorBoundary, B as Block, b as useIsomorphicLayoutEffect, d as unmountComponentAtNode } from './index-1e2a4313.esm.js';
+-export { t as ReactThreeFiber, s as _roots, q as act, n as addAfterEffect, m as addEffect, o as addTail, l as advance, i as applyProps, f as context, g as createPortal, a as createRoot, j as dispose, e as extend, p as getRootState, k as invalidate, h as reconciler, r as render, d as unmountComponentAtNode, x as useFrame, y as useGraph, z as useLoader, v as useStore, w as useThree } from './index-1e2a4313.esm.js';
++import { c as createEvents, e as extend, u as useMutableCallback, a as createRoot, E as ErrorBoundary, B as Block, b as useIsomorphicLayoutEffect, d as unmountComponentAtNode } from './index-22bed93d.esm.js';
++export { t as ReactThreeFiber, s as _roots, q as act, n as addAfterEffect, m as addEffect, o as addTail, l as advance, i as applyProps, f as context, c as createEvents, g as createPortal, a as createRoot, j as dispose, e as extend, p as getRootState, k as invalidate, h as reconciler, r as render, d as unmountComponentAtNode, x as useFrame, y as useGraph, z as useLoader, v as useStore, w as useThree } from './index-22bed93d.esm.js';
+ import _extends from '@babel/runtime/helpers/esm/extends';
+ import * as React from 'react';
+ import * as THREE from 'three';

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three'
-import { extend, useFrame, createRoot, events } from '@react-three/fiber'
+import { extend, useFrame, createRoot } from '@react-three/fiber'
+import { createPointerEvents } from './events'
 
 extend(THREE)
 
@@ -45,8 +46,10 @@ const AppWraper = () => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const root = createRoot(canvasRef.current, {
-      events,
+    const root = createRoot(canvasRef.current)
+
+    root.configure({
+      events: createPointerEvents,
       size: {
         width: canvas.clientWidth,
         height: canvas.clientHeight,
@@ -56,7 +59,7 @@ const AppWraper = () => {
     root.render(<App />)
 
     return () => {
-      root.unmount()
+      location.reload()
     }
   }, [])
 

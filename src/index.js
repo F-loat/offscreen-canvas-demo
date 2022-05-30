@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useState } from 'react'
 import Three from './components/three'
 import ThreeOffscreen from './components/three-offscreen'
 import ThreeFiber from './components/three-fiber'
@@ -10,40 +10,60 @@ import './styles.css'
 const { pathname } = location
 
 function jank() {
-	let number = 0;
 	for ( let i = 0; i < 10000000; i ++ ) {
-		number += Math.random();
+		Math.random()
 	}
-	result.textContent = number;
 }
 
-let interval = null;
+const routes = {
+  '/offscreen-canvas-demo/three': Three,
+  '/offscreen-canvas-demo/three-offscreen': ThreeOffscreen,
+  '/offscreen-canvas-demo/three-fiber': ThreeFiber,
+  '/offscreen-canvas-demo/three-fiber-custom': ThreeFiberCustom,
+  '/offscreen-canvas-demo/three-fiber-offscreen': ThreeFiberOffscreen,
+}
+
+const Comp = routes[pathname] || ThreeFiberOffscreen
+
+let interval = null
 
 const Root = () => {
   const [count, setCount] = useState(0)
 
-  useEffect(() => {
+  const toggleJank = () => {
 		if (interval === null) {
-      // START JANK
-			// interval = setInterval(jank, 1000 / 60);
+			interval = setInterval(() => {
+        jank()
+        setCount(count => count + 1)
+      }, 1000 / 60)
 		} else {
-			clearInterval(interval);
-			interval = null;
+			clearInterval(interval)
+			interval = null
+      setCount(0)
 		}
-
-    // START RENDER
-    // setInterval(() => setCount(count => count + 1), 1000 / 60);
-  }, [])
+  }
 
   return (
     <>
       <Suspense fallback={null}>
-        {pathname === '/three' && <Three />}
-        {pathname === '/three-offscreen' && <ThreeOffscreen />}
-        {pathname === '/three-fiber' && <ThreeFiber />}
-        {pathname === '/three-fiber-custom' && <ThreeFiberCustom />}
-        {pathname === '/three-fiber-offscreen' && <ThreeFiberOffscreen />}
-        <div className="counter">{count}</div>
+        {Comp && <Comp />}
+        <div className="counter">
+          <button onClick={toggleJank}>
+            {count ? 'STOP JANK' : 'START JANK'}
+          </button>
+          {count ? <div>{count}</div> : null}
+        </div>
+        <ul className="nav">
+          {Object.keys(routes).map((route) => (
+            <li key={route}>
+              <a href={route} className={pathname === route ? 'highlight' : ''}>
+                {route
+                  .replace('/offscreen-canvas-demo', '')
+                  .replace(/[-|\/](\w)/g, ($, $1) => $1.toUpperCase())}
+              </a>
+            </li>
+          ))}
+        </ul>
       </Suspense>
     </>
   )
