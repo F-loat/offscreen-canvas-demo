@@ -7,7 +7,8 @@ set -e
 npm run build
 
 # 进入构建文件夹
-cd dist
+cd build
+cp index.html 404.html
 
 git init
 git checkout -b main
