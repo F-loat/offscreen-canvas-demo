@@ -1,6 +1,7 @@
 html, body {
   margin: 0;
   height: 100%;
+  color: #333;
 }
 
 #root, canvas {
@@ -9,12 +10,12 @@ html, body {
   overflow: hidden;
 }
 
-a {
-  color: #333;
+.flex {
+  display: flex;
 }
 
-a:hover {
-  opacity: 0.8;
+.flex-1	{
+  flex: 1 1 0%;
 }
 
 .counter {
@@ -35,6 +36,15 @@ a:hover {
   position: fixed;
   bottom: 20px;
   right: 20px;
+  color: #aaa;
+}
+
+a {
+  color: #aaa;
+}
+
+a:hover {
+  color: #666;
 }
 
 .highlight {

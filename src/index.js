@@ -23,7 +23,7 @@ const routes = {
   '/offscreen-canvas-demo/three-fiber-offscreen': ThreeFiberOffscreen,
 }
 
-const Comp = routes[pathname] || ThreeFiberOffscreen
+const Comp = routes[pathname]
 
 let interval = null
 
@@ -44,28 +44,31 @@ const Root = () => {
   }
 
   return (
-    <>
-      <Suspense fallback={null}>
-        {Comp && <Comp />}
-        <div className="counter">
-          <button onClick={toggleJank}>
-            {count ? 'STOP JANK' : 'START JANK'}
-          </button>
-          {count ? <div>{count}</div> : null}
+    <Suspense fallback={null}>
+      {Comp ? <Comp /> : (
+        <div className="flex flex-1">
+          <ThreeFiber />
+          <ThreeFiberOffscreen />
         </div>
-        <ul className="nav">
-          {Object.keys(routes).map((route) => (
-            <li key={route}>
-              <a href={route} className={pathname === route ? 'highlight' : ''}>
-                {route
-                  .replace('/offscreen-canvas-demo', '')
-                  .replace(/[-|\/](\w)/g, ($, $1) => $1.toUpperCase())}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </Suspense>
-    </>
+      )}
+      <div className="counter">
+        <button onClick={toggleJank}>
+          {count ? 'STOP JANK' : 'START JANK'}
+        </button>
+        {count ? <div>{count}</div> : null}
+      </div>
+      <ul className="nav">
+        {Object.keys(routes).map((route) => (
+          <li key={route}>
+            <a href={route} className={pathname === route ? 'highlight' : ''}>
+              {route
+                .replace('/offscreen-canvas-demo', '')
+                .replace(/[-|\/](\w)/g, ($, $1) => $1.toUpperCase())}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </Suspense>
   )
 }
 
