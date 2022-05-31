@@ -1,53 +1,22 @@
-import React, { useRef, useState } from 'react'
+import React from 'react'
 import * as THREE from 'three'
-import { extend, useFrame, createRoot } from '@react-three/fiber'
-import { createPointerEvents } from './events'
+import { extend, createRoot } from '@react-three/fiber'
+import { emitter, createPointerEvents } from './events'
+import Comp from './comp'
 
 extend(THREE)
 
-function Cube(props) {
-  // This reference will give us direct access to the mesh
-  const mesh = useRef()
-  // Set up state for the hovered and active state
-  const [hovered, setHover] = useState(false)
-  const [active, setActive] = useState(false)
-  // Subscribe this component to the render-loop, rotate the mesh every frame
-  useFrame((state, delta) => {
-    mesh.current.rotation.x += 0.01
-    mesh.current.rotation.y += 0.01
-  })
-  // Return view, these are regular three.js elements expressed in JSX
-  return (
-    <mesh
-      {...props}
-      ref={mesh}
-      scale={active ? 1.5 : 1}
-      onClick={() => setActive(!active)}
-      onPointerOver={() => setHover(true)}
-      onPointerOut={() => setHover(false)}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
-    </mesh>
-  )
-}
+let root;
 
-const App = () => {
-  return (
-    <>
-      <ambientLight />
-      <pointLight position={[10, 10, 10]} />
-      <Cube position={[0, 0, 0]} />
-    </>
-  );
-}
+const eventHandleMap = {}
 
-self.onmessage = (event) => {
-  const { drawingSurface: canvas, width, height, pixelRatio } = event.data;
+const handleInit = (payload) => {
+  const { drawingSurface: canvas, width, height, pixelRatio } = payload;
 
-  const root = createRoot(canvas)
+  root = createRoot(canvas)
 
   root.configure({
-    events: createPointerEvents,
+    events: store => createPointerEvents(store, eventHandleMap),
     size: {
       width,
       height,
@@ -56,5 +25,35 @@ self.onmessage = (event) => {
     dpr: pixelRatio,
   })
 
-  root.render(<App />)
+  root.render(<Comp />)
+}
+
+const handleResize = ({ width, height }) => {
+  if (!root) return;
+  root.configure({
+    size: {
+      width,
+      height,
+      updateStyle: false
+    },
+  })
+}
+
+const handleEvents = (payload) => {
+  emitter.emit(payload.eventName, payload)
+  emitter.on('disconnect', () => {
+    self.postMessage({ type: 'dom_events_disconnect' })
+  })
+}
+
+const handlerMap = {
+  'resize': handleResize,
+  'init': handleInit,
+  'dom_events': handleEvents
+}
+
+self.onmessage = (event) => {
+  const { type, payload } = event.data
+  const handler = handlerMap[type]
+  if (handler) handler(payload)
 }

@@ -1,6 +1,7 @@
+import mitt from 'mitt'
 import { createEvents } from '@react-three/fiber'
 
-const DOM_EVENTS = {
+export const DOM_EVENTS = {
   onClick: ['click', false],
   onContextMenu: ['contextmenu', false],
   onDoubleClick: ['dblclick', false],
@@ -13,7 +14,9 @@ const DOM_EVENTS = {
   onLostPointerCapture: ['lostpointercapture', true],
 }
 
-/** Default R3F event manager for web */
+export const emitter = mitt()
+
+/** R3F event manager for web offscreen canvas */
 export function createPointerEvents(store) {
   const { handlePointer } = createEvents(store)
 
@@ -37,19 +40,18 @@ export function createPointerEvents(store) {
       events.disconnect?.()
       set((state) => ({ events: { ...state.events, connected: target } }))
       Object.entries(events?.handlers ?? []).forEach(([name, event]) => {
-        const [eventName, passive] = DOM_EVENTS[name]
-        target.addEventListener(eventName, event, { passive })
+        const [eventName] = DOM_EVENTS[name]
+        emitter.on(eventName, event)
       })
     },
     disconnect: () => {
       const { set, events } = store.getState()
       if (events.connected) {
         Object.entries(events.handlers ?? []).forEach(([name, event]) => {
-          if (events && events.connected instanceof HTMLElement) {
-            const [eventName] = DOM_EVENTS[name]
-            events.connected.removeEventListener(eventName, event)
-          }
+          const [eventName] = DOM_EVENTS[name]
+          emitter.off(eventName, event)
         })
+        emitter.emit('disconnect')
         set((state) => ({ events: { ...state.events, connected: undefined } }))
       }
     },
