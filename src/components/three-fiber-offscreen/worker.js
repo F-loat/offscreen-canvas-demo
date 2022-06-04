@@ -1,4 +1,4 @@
-import React from 'react'
+import { useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { extend, createRoot } from '@react-three/fiber'
 import { emitter, createPointerEvents } from './events'
@@ -10,8 +10,21 @@ let root;
 
 const eventHandleMap = {}
 
+const CompWrapper = (initialProps) => {
+  const [props, setProps] = useState(initialProps)
+
+  useEffect(() => {
+    emitter.on('props', setProps)
+    return () => {
+      emitter.off('props', setProps)
+    }
+  }, [])
+
+  return <Comp {...props} />
+}
+
 const handleInit = (payload) => {
-  const { drawingSurface: canvas, width, height, pixelRatio } = payload;
+  const { props, drawingSurface: canvas, width, height, pixelRatio } = payload;
 
   root = createRoot(canvas)
 
@@ -25,7 +38,7 @@ const handleInit = (payload) => {
     dpr: pixelRatio,
   })
 
-  root.render(<Comp />)
+  root.render(<CompWrapper {...props} />)
 }
 
 const handleResize = ({ width, height }) => {
@@ -46,10 +59,15 @@ const handleEvents = (payload) => {
   })
 }
 
+const handleProps = (payload) => {
+  emitter.emit('props', payload)
+}
+
 const handlerMap = {
   'resize': handleResize,
   'init': handleInit,
-  'dom_events': handleEvents
+  'dom_events': handleEvents,
+  'props': handleProps,
 }
 
 self.onmessage = (event) => {

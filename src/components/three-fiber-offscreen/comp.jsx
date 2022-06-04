@@ -26,12 +26,12 @@ function Cube(props) {
   )
 }
 
-const Comp = () => {
+const Comp = ({ position }) => {
   return (
     <>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
-      <Cube position={[0, 0, 0]} />
+      <Cube position={position} />
     </>
   );
 }

@@ -1,18 +1,29 @@
 import React, { useEffect } from 'react';
 import { DOM_EVENTS } from './events'
 
-const OffscreenCanvas = () => {
+const worker = new Worker(new URL('./worker.js', import.meta.url));
+
+const OffscreenCanvas = ({
+  onClick,
+  ...props
+}) => {
   const canvasRef = React.useRef();
+
+  useEffect(() => {
+    worker.postMessage({
+      type: 'props',
+      payload: props
+    })
+  }, [props])
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const offscreen = canvasRef.current.transferControlToOffscreen();
 
-    const worker = new Worker(new URL('./worker.js', import.meta.url));
-
     worker.postMessage( {
       type: 'init',
       payload: {
+        props,
         drawingSurface: offscreen,
         width: canvas.clientWidth,
         height: canvas.clientHeight,
@@ -55,7 +66,7 @@ const OffscreenCanvas = () => {
   }, []);
 
   return (
-    <canvas ref={canvasRef} />
+    <canvas ref={canvasRef} onClick={onClick} />
   );
 }
 
