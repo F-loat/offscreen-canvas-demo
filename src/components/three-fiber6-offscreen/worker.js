@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
 import * as THREE from 'three'
-import { extend, createRoot } from '@react-three/fiber'
+import { extend, render } from 'r3f6'
 import { emitter, createPointerEvents } from './events'
 import Comp from './comp'
 
 extend(THREE)
-
-let root;
 
 const CompWrapper = (initialProps) => {
   const [props, setProps] = useState(initialProps)
@@ -24,9 +22,7 @@ const CompWrapper = (initialProps) => {
 const handleInit = (payload) => {
   const { props, drawingSurface: canvas, width, height, pixelRatio } = payload;
 
-  root = createRoot(canvas)
-
-  root.configure({
+  render(<CompWrapper {...props} />, canvas, {
     events: createPointerEvents,
     size: {
       width,
@@ -34,19 +30,6 @@ const handleInit = (payload) => {
       updateStyle: false
     },
     dpr: pixelRatio,
-  })
-
-  root.render(<CompWrapper {...props} />)
-}
-
-const handleResize = ({ width, height }) => {
-  if (!root) return;
-  root.configure({
-    size: {
-      width,
-      height,
-      updateStyle: false
-    },
   })
 }
 
@@ -62,7 +45,6 @@ const handleProps = (payload) => {
 }
 
 const handlerMap = {
-  'resize': handleResize,
   'init': handleInit,
   'dom_events': handleEvents,
   'props': handleProps,
