@@ -1,0 +1,19 @@
+{
+  "files": {
+    "main.css": "/offscreen-canvas-demo/static/css/main.ef8b128f.css",
+    "main.js": "/offscreen-canvas-demo/static/js/main.63ea2176.js",
+    "static/js/548.eb811c16.chunk.js": "/offscreen-canvas-demo/static/js/548.eb811c16.chunk.js",
+    "static/js/794.3c248233.chunk.js": "/offscreen-canvas-demo/static/js/794.3c248233.chunk.js",
+    "static/js/437.319bba38.chunk.js": "/offscreen-canvas-demo/static/js/437.319bba38.chunk.js",
+    "static/js/409.5f350a29.chunk.js": "/offscreen-canvas-demo/static/js/409.5f350a29.chunk.js",
+    "static/js/609.45ec17ce.chunk.js": "/offscreen-canvas-demo/static/js/609.45ec17ce.chunk.js",
+    "static/js/944.0577d5bf.chunk.js": "/offscreen-canvas-demo/static/js/944.0577d5bf.chunk.js",
+    "static/js/407.4d5db630.chunk.js": "/offscreen-canvas-demo/static/js/407.4d5db630.chunk.js",
+    "static/js/825.c45d3c46.chunk.js": "/offscreen-canvas-demo/static/js/825.c45d3c46.chunk.js",
+    "index.html": "/offscreen-canvas-demo/index.html"
+  },
+  "entrypoints": [
+    "static/css/main.ef8b128f.css",
+    "static/js/main.63ea2176.js"
+  ]
+}

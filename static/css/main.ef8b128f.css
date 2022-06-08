@@ -1,0 +1,1 @@
+body,html{color:#333;height:100%;margin:0}#root,canvas{height:100%;overflow:hidden;width:100%}.flex{display:flex}.flex-1{flex:1 1}.counter{position:fixed;right:20px;text-align:right;top:20px}.counter button{border:none;border-radius:4px;cursor:pointer;padding:12px}.nav{bottom:20px;position:fixed;right:20px}.nav,a{color:#aaa}a:hover{color:#666}.highlight{color:red}
