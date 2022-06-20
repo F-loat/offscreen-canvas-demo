@@ -1,18 +1,6 @@
 import mitt from 'mitt'
-import { createEvents } from 'r3f6'
-
-export const DOM_EVENTS = {
-  onClick: ['click', false],
-  onContextMenu: ['contextmenu', false],
-  onDoubleClick: ['dblclick', false],
-  onWheel: ['wheel', true],
-  onPointerDown: ['pointerdown', true],
-  onPointerUp: ['pointerup', true],
-  onPointerLeave: ['pointerleave', true],
-  onPointerMove: ['pointermove', true],
-  onPointerCancel: ['pointercancel', true],
-  onLostPointerCapture: ['lostpointercapture', true],
-}
+import { createEvents } from '@react-three/fiber'
+import { DOM_EVENTS } from '../consts'
 
 export const emitter = mitt()
 

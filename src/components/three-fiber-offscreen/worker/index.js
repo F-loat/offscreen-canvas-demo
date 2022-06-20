@@ -1,16 +1,23 @@
 import { useState, useEffect } from 'react'
 import * as THREE from 'three'
-import { extend, render } from 'r3f6'
+import { extend, createRoot } from '@react-three/fiber'
+// import { extend, render } from 'r3f6'
 import { emitter, createPointerEvents } from './events'
 import Comp from './comp'
 
 extend(THREE)
 
+let root;
+
 const CompWrapper = (initialProps) => {
+  const [store, setStore] = useState({})
   const [props, setProps] = useState(initialProps)
 
   useEffect(() => {
-    emitter.on('props', setProps)
+    emitter.on('props', p => {
+      setProps(p)
+      setStore({ props: p })
+    })
     return () => {
       emitter.off('props', setProps)
     }
@@ -22,7 +29,9 @@ const CompWrapper = (initialProps) => {
 const handleInit = (payload) => {
   const { props, drawingSurface: canvas, width, height, pixelRatio } = payload;
 
-  render(<CompWrapper {...props} />, canvas, {
+  root = createRoot(canvas)
+
+  root.configure({
     events: createPointerEvents,
     size: {
       width,
@@ -30,6 +39,30 @@ const handleInit = (payload) => {
       updateStyle: false
     },
     dpr: pixelRatio,
+  })
+
+  root.render(<CompWrapper {...props} />)
+
+  // r3f6
+  // render(<CompWrapper {...props} />, canvas, {
+  //   events: createPointerEvents,
+  //   size: {
+  //     width,
+  //     height,
+  //     updateStyle: false
+  //   },
+  //   dpr: pixelRatio,
+  // })
+}
+
+const handleResize = ({ width, height }) => {
+  if (!root) return;
+  root.configure({
+    size: {
+      width,
+      height,
+      updateStyle: false
+    },
   })
 }
 
@@ -45,6 +78,7 @@ const handleProps = (payload) => {
 }
 
 const handlerMap = {
+  'resize': handleResize,
   'init': handleInit,
   'dom_events': handleEvents,
   'props': handleProps,
@@ -55,3 +89,5 @@ self.onmessage = (event) => {
   const handler = handlerMap[type]
   if (handler) handler(payload)
 }
+
+self.window = {}

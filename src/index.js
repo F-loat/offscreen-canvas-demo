@@ -5,7 +5,6 @@ import ThreeOffscreen from './components/three-offscreen'
 import ThreeFiber from './components/three-fiber'
 import ThreeFiberCustom from './components/three-fiber-custom'
 import ThreeFiberOffscreen from './components/three-fiber-offscreen'
-import ThreeFiber6Offscreen from './components/three-fiber6-offscreen'
 import './styles.css'
 
 const { pathname } = location
@@ -21,8 +20,7 @@ const routes = {
   '/offscreen-canvas-demo/three-offscreen': ThreeOffscreen,
   '/offscreen-canvas-demo/three-fiber': ThreeFiber,
   '/offscreen-canvas-demo/three-fiber-custom': ThreeFiberCustom,
-  '/offscreen-canvas-demo/three-fiber-offscreen': ThreeFiberOffscreen,
-  '/offscreen-canvas-demo/three-fiber6-offscreen': ThreeFiber6Offscreen
+  '/offscreen-canvas-demo/three-fiber-offscreen': ThreeFiberOffscreen
 }
 
 const Comp = routes[pathname]

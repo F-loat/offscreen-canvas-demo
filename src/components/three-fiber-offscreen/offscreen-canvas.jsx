@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { DOM_EVENTS } from './events'
+import { DOM_EVENTS } from './consts'
 
 const OffscreenCanvas = ({
   onClick,
